@@ -33,14 +33,6 @@ export const PortfolioLayout = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors pb-16">
-      {/* Portfolio Top Notice Banner */}
-      <div className="border-b border-indigo-100 bg-indigo-50/70 py-2.5 px-4 text-center text-xs font-semibold text-indigo-900 dark:border-indigo-900/40 dark:bg-indigo-950/30 dark:text-indigo-300">
-        <span className="inline-flex items-center gap-1.5">
-          <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" />
-          <span>Mini-Project Showcase: Candidate Portfolio Site with Nested Routing & State</span>
-        </span>
-      </div>
-
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
         {/* Profile Card Banner */}
         <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">

@@ -88,7 +88,7 @@ export const CartPage = () => {
       addToast({
         type: 'error',
         title: 'Batch Checkout Failed',
-        message: err || 'Simulated error in state explorer. Try disabling simulated errors.'
+        message: err || 'Could not process batch applications. Please try again.'
       });
     }
   };
@@ -102,23 +102,6 @@ export const CartPage = () => {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 animate-fade-in space-y-8">
-      {/* Top Banner explaining the Mini-Project */}
-      <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <ShoppingBag size={20} />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-emerald-950 dark:text-emerald-200">
-              Mini-Project: Redux Application Shopping Cart ("Job Basket")
-            </h3>
-            <p className="text-xs text-emerald-800/80 dark:text-emerald-300">
-              Demonstrates Redux Toolkit state architecture, persistent basket caching, real-time item property mutation, and bulk checkout dispatches.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

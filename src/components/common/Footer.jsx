@@ -22,7 +22,7 @@ export const Footer = () => {
             </p>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-              <span>Project Evaluation-I Ready</span>
+              <span>Live Job Network Active</span>
             </div>
           </div>
 
@@ -39,12 +39,12 @@ export const Footer = () => {
               </li>
               <li>
                 <Link to="/portfolio" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                  Candidate Portfolio Site
+                  Candidate Portfolio
                 </Link>
               </li>
               <li>
                 <Link to="/cart" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                  Application Basket (Job Cart)
+                  Application Basket
                 </Link>
               </li>
               <li>
@@ -54,48 +54,48 @@ export const Footer = () => {
               </li>
               <li>
                 <Link to="/post-job" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                  Post New Vacancy Form
+                  Post New Vacancy
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Evaluation Syllabus Coverage */}
+          {/* Platform Capabilities */}
           <div className="md:col-span-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
               <Sparkles size={14} className="text-indigo-500" />
-              Evaluation Criteria & Syllabus Mapping
+              Platform Features & Services
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
               <div className="flex items-start gap-1.5 rounded-lg bg-slate-50 p-2 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50">
                 <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block">SPA & Routing</strong>
-                  Multi-page SPA + Portfolio sub-routing
+                  <strong className="text-slate-800 dark:text-slate-200 block">Candidate Profiles</strong>
+                  Comprehensive project showcase and ATS-friendly resumes
                 </div>
               </div>
 
               <div className="flex items-start gap-1.5 rounded-lg bg-slate-50 p-2 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50">
                 <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block">State Architecture</strong>
-                  Global vs Local State (Redux Toolkit + Context)
+                  <strong className="text-slate-800 dark:text-slate-200 block">Application Basket</strong>
+                  Batch multi-company checkout with customized cover notes
                 </div>
               </div>
 
               <div className="flex items-start gap-1.5 rounded-lg bg-slate-50 p-2 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50">
                 <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block">Async State Management</strong>
-                  Thunks, loading skeletons, error injection & retries
+                  <strong className="text-slate-800 dark:text-slate-200 block">Live External Job Feeds</strong>
+                  Real-time synchronization with global partner job feeds
                 </div>
               </div>
 
               <div className="flex items-start gap-1.5 rounded-lg bg-slate-50 p-2 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50">
                 <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block">Form Validation & Inputs</strong>
-                  Touched/dirty tracking + Reusable inputs library
+                  <strong className="text-slate-800 dark:text-slate-200 block">Recruitment Pipeline</strong>
+                  Dual-persona telemetry, stage tracking, and vacancy management
                 </div>
               </div>
             </div>
@@ -107,20 +107,14 @@ export const Footer = () => {
           <p>© 2026 CareerConnect Job Portal. All rights reserved.</p>
           <div className="flex items-center gap-3">
             <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium dark:bg-slate-900">
-              React 18.3
+              React 18
             </span>
             <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium dark:bg-slate-900">
               Redux Toolkit
             </span>
             <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium dark:bg-slate-900">
-              Context API
+              Express & SQLite
             </span>
-            <Link
-              to="/architecture-guide"
-              className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
-            >
-              Interactive State Guide →
-            </Link>
           </div>
         </div>
       </div>

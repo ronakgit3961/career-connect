@@ -1,82 +1,180 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchJobs, setSearchFilter, selectFilteredJobs } from '../store/slices/jobsSlice';
+import {
+  fetchJobs,
+  setSearchFilter,
+  setCategoryFilter,
+  setWorkplaceFilter,
+  setExperienceFilter,
+  setJobTypeFilter,
+  setMinSalaryFilter,
+  setSortBy,
+  selectFilteredJobs
+} from '../store/slices/jobsSlice';
 import JobCard from '../components/jobs/JobCard';
 import JobFilters from '../components/jobs/JobFilters';
 import ApplyModal from '../components/jobs/ApplyModal';
 import { JobCardSkeleton } from '../components/common/LoadingSkeleton';
 import ErrorBanner from '../components/common/ErrorBanner';
-import { LayoutGrid, List, SearchX, Sparkles, Filter } from 'lucide-react';
+import { api } from '../services/api';
+import { useToast } from '../context/ToastContext';
+import {
+  LayoutGrid,
+  List,
+  SearchX,
+  Sparkles,
+  Compass,
+  Globe,
+  Database,
+  RefreshCw
+} from 'lucide-react';
 
 export const JobsPage = () => {
   const dispatch = useDispatch();
-  const [searchParams] = useSearchParams();
-  const { items, status, error } = useSelector((state) => state.jobs);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { addToast } = useToast();
+  const { items, status, error, filters, sortBy } = useSelector((state) => state.jobs);
   const filteredJobs = useSelector(selectFilteredJobs);
 
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
   const [activeModalJob, setActiveModalJob] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const isInitialMount = useRef(true);
 
-  // Sync url param ?search=
-  useEffect(() => {
-    const urlQuery = searchParams.get('search');
-    if (urlQuery) {
-      dispatch(setSearchFilter(urlQuery));
+  const externalCount = items.filter((j) => j.source === 'external').length;
+  const localCount = items.filter((j) => j.source !== 'external').length;
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await api.syncLiveJobs();
+      await dispatch(fetchJobs()).unwrap();
+      addToast({
+        type: 'success',
+        title: 'Job Boards Synchronized',
+        message: `Synced with Arbeitnow & Remotive APIs. (${res.totalSynced || 0} jobs refreshed)`
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Sync Error',
+        message: err.message || 'Could not fetch live job board feeds.'
+      });
+    } finally {
+      setSyncing(false);
     }
-  }, [searchParams, dispatch]);
+  };
 
+  // 1. Initial Mount: Hydrate Redux filter state from URL Search Params (Deep Linking)
   useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    const urlCategory = searchParams.get('category');
+    const urlWorkplace = searchParams.get('workplace');
+    const urlExperience = searchParams.get('experience');
+    const urlType = searchParams.get('type');
+    const urlMinSalary = searchParams.get('minSalary');
+    const urlSort = searchParams.get('sort');
+
+    if (urlSearch !== null) dispatch(setSearchFilter(urlSearch));
+    if (urlCategory !== null) dispatch(setCategoryFilter(urlCategory));
+    if (urlWorkplace !== null) dispatch(setWorkplaceFilter(urlWorkplace));
+    if (urlExperience !== null) dispatch(setExperienceFilter(urlExperience));
+    if (urlType !== null) dispatch(setJobTypeFilter(urlType));
+    if (urlMinSalary !== null) dispatch(setMinSalaryFilter(Number(urlMinSalary)));
+    if (urlSort !== null) dispatch(setSortBy(urlSort));
+
     if (status === 'idle') {
       dispatch(fetchJobs());
     }
-  }, [status, dispatch]);
+  }, []);
+
+  // 2. Two-Way Sync: Update URL Search Parameters whenever Redux filter state changes
+  useEffect(() => {
+    // Skip on first initial render to avoid overriding URL params before hydration
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const params = new URLSearchParams();
+
+    if (filters.search) params.set('search', filters.search);
+    if (filters.category && filters.category !== 'All') params.set('category', filters.category);
+    if (filters.workplaceType && filters.workplaceType !== 'All') params.set('workplace', filters.workplaceType);
+    if (filters.experienceLevel && filters.experienceLevel !== 'All') params.set('experience', filters.experienceLevel);
+    if (filters.jobType && filters.jobType !== 'All') params.set('type', filters.jobType);
+    if (filters.minSalary > 0) params.set('minSalary', filters.minSalary.toString());
+    if (sortBy && sortBy !== 'newest') params.set('sort', sortBy);
+
+    setSearchParams(params, { replace: true });
+  }, [filters, sortBy, setSearchParams]);
 
   const handleRetry = () => {
     dispatch(fetchJobs());
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-fade-in">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 mb-2">
-            <Sparkles size={13} />
-            <span>Multi-Page SPA Job Repository</span>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+              <Compass size={13} />
+              <span>Two-Way URL Query Param Synchronized</span>
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50">
+              <Globe size={13} />
+              <span>Live API & DB Connected ({externalCount} Live External • {localCount} Direct)</span>
+            </div>
           </div>
+
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Explore Open Roles
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Search, filter, and batch apply to high-growth tech positions
+            Real jobs from live APIs (Arbeitnow & Remotive) alongside local recruiter postings, stored in SQLite database
           </p>
         </div>
 
-        {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 self-start sm:self-auto rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+        {/* Sync & View Mode Toggle */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
-            onClick={() => setViewMode('grid')}
-            className={`rounded-lg p-1.5 text-xs font-semibold transition ${
-              viewMode === 'grid'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-            }`}
-            title="Grid view"
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            title="Fetch latest job listings from live external API feeds"
           >
-            <LayoutGrid size={16} />
+            <RefreshCw size={13} className={syncing ? 'animate-spin text-indigo-600' : ''} />
+            <span>{syncing ? 'Syncing...' : 'Sync Live Jobs'}</span>
           </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`rounded-lg p-1.5 text-xs font-semibold transition ${
-              viewMode === 'list'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-            }`}
-            title="List view"
-          >
-            <List size={16} />
-          </button>
+
+          <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`rounded-lg p-1.5 text-xs font-semibold transition ${
+                viewMode === 'grid'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              }`}
+              title="Grid view"
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`rounded-lg p-1.5 text-xs font-semibold transition ${
+                viewMode === 'list'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              }`}
+              title="List view"
+            >
+              <List size={16} />
+            </button>
+          </div>
         </div>
       </div>
 

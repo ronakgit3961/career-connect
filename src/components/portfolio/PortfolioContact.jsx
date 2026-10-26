@@ -2,6 +2,7 @@ import React from 'react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { api } from '../../services/api';
 import useForm from '../../hooks/useForm';
 import { TextInput, SelectInput, TextareaInput, Checkbox } from '../common/form';
 import { Send, Mail, Building, User, DollarSign, MessageSquare, Briefcase } from 'lucide-react';
@@ -55,22 +56,29 @@ export const PortfolioContact = () => {
       }
     },
     onSubmit: async (formValues) => {
-      // Simulate network dispatch
-      await new Promise((r) => setTimeout(r, 600));
+      try {
+        await api.submitContactInquiry(formValues);
 
-      confetti({
-        particleCount: 70,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
+        confetti({
+          particleCount: 70,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
 
-      addToast({
-        type: 'success',
-        title: 'Interview Inquiry Dispatched!',
-        message: `Your hiring inquiry from ${formValues.companyName} was forwarded directly to Alex Rivera.`
-      });
+        addToast({
+          type: 'success',
+          title: 'Interview Inquiry Dispatched!',
+          message: `Your hiring inquiry from ${formValues.companyName} was saved to the database and forwarded to Alex Rivera.`
+        });
 
-      resetForm();
+        resetForm();
+      } catch (err) {
+        addToast({
+          type: 'error',
+          title: 'Failed to Send Inquiry',
+          message: err.message || 'Could not save inquiry to the server.'
+        });
+      }
     }
   });
 

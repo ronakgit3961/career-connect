@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { fetchApplications, updateApplicationStatus } from '../store/slices/applicationsSlice';
+import { deleteJob } from '../store/slices/jobsSlice';
 import {
   LayoutDashboard,
   Briefcase,
@@ -20,7 +21,8 @@ import {
   Send,
   PlusCircle,
   FileText,
-  UserCheck
+  UserCheck,
+  Trash2
 } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -44,10 +46,8 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('pipeline'); // 'pipeline' | 'saved' | 'analytics'
 
   useEffect(() => {
-    if (appStatus === 'idle') {
-      dispatch(fetchApplications());
-    }
-  }, [appStatus, dispatch]);
+    dispatch(fetchApplications());
+  }, [role, dispatch]);
 
   const handleStatusChange = async (appId, newStatus) => {
     try {
@@ -66,39 +66,30 @@ export const DashboardPage = () => {
     }
   };
 
+  const handleDeleteJob = async (jobId, jobTitle) => {
+    if (!window.confirm(`Are you sure you want to delete the vacancy "${jobTitle}"? This will permanently remove it from listings.`)) {
+      return;
+    }
+    try {
+      await dispatch(deleteJob(jobId)).unwrap();
+      addToast({
+        type: 'success',
+        title: 'Vacancy Deleted',
+        message: `"${jobTitle}" has been removed from active listings.`
+      });
+    } catch {
+      addToast({
+        type: 'error',
+        title: 'Delete Failed',
+        message: 'Could not delete the vacancy.'
+      });
+    }
+  };
+
   const savedJobs = jobs.filter((j) => savedJobIds.includes(j.id));
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 animate-fade-in space-y-8">
-      {/* Mini-Project notice pill */}
-      <div className="rounded-2xl border border-violet-200/80 bg-violet-50/70 p-4 dark:border-violet-900/40 dark:bg-violet-950/20">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400">
-              <LayoutDashboard size={20} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-violet-950 dark:text-violet-200">
-                Mini-Project: Dual-Persona Analytics Dashboard
-              </h3>
-              <p className="text-xs text-violet-800/80 dark:text-violet-300">
-                Live recruitment telemetry, application lifecycle tracking, and status transitions for both job seekers and corporate recruiters.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <span className="text-xs font-medium text-slate-500">Switch View:</span>
-            <button
-              onClick={() => switchRole(role === 'seeker' ? 'recruiter' : 'seeker')}
-              className="rounded-xl border border-violet-300 bg-white px-3 py-1.5 text-xs font-bold text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:bg-slate-900 dark:text-violet-300 transition"
-            >
-              Current: {isRecruiter ? '🏢 Recruiter View' : '👤 Seeker View'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Header Profile Summary */}
       <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -124,6 +115,13 @@ export const DashboardPage = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => switchRole(role === 'seeker' ? 'recruiter' : 'seeker')}
+              className="rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 transition"
+              title="Toggle between candidate and recruiter persona"
+            >
+              Switch to {isRecruiter ? '👤 Job Seeker' : '🏢 Recruiter'}
+            </button>
             {isRecruiter ? (
               <Link
                 to="/post-job"
@@ -193,7 +191,18 @@ export const DashboardPage = () => {
           >
             {isRecruiter ? 'Applicant Hiring Pipeline' : 'My Active Applications'} ({applications.length})
           </button>
-          {!isRecruiter && (
+          {isRecruiter ? (
+            <button
+              onClick={() => setActiveTab('vacancies')}
+              className={`pb-3 border-b-2 transition ${
+                activeTab === 'vacancies'
+                  ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'
+              }`}
+            >
+              Manage Posted Vacancies ({jobs.length})
+            </button>
+          ) : (
             <button
               onClick={() => setActiveTab('saved')}
               className={`pb-3 border-b-2 transition ${
@@ -324,6 +333,89 @@ export const DashboardPage = () => {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Tab 3: Recruiter Posted Vacancies Management */}
+        {activeTab === 'vacancies' && isRecruiter && (
+          <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  Active Vacancies Management
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Inspect and manage all live job openings published to the candidate marketplace.
+                </p>
+              </div>
+              <Link
+                to="/post-job"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700"
+              >
+                <PlusCircle size={14} />
+                <span>Post Vacancy</span>
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
+                  <tr>
+                    <th className="py-3.5 px-6">Role & Company</th>
+                    <th className="py-3.5 px-6">Location & Type</th>
+                    <th className="py-3.5 px-6">Salary Bounds</th>
+                    <th className="py-3.5 px-6">Applicants</th>
+                    <th className="py-3.5 px-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {jobs.slice(0, 30).map((j) => (
+                    <tr key={j.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                      <td className="py-4 px-6">
+                        <Link to={`/jobs/${j.id}`} className="font-bold text-slate-900 hover:text-indigo-600 dark:text-white">
+                          {j.title}
+                        </Link>
+                        <p className="text-slate-500">{j.company} • {j.category}</p>
+                      </td>
+                      <td className="py-4 px-6 text-slate-600 dark:text-slate-300">
+                        {j.location} ({j.workplaceType || 'Remote'})
+                      </td>
+                      <td className="py-4 px-6 font-semibold text-emerald-600 dark:text-emerald-400">
+                        ${(j.minSalary || 0).toLocaleString()} - ${(j.maxSalary || 0).toLocaleString()}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="inline-flex items-center rounded-lg bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                          {j.applicantsCount || 0} applied
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <Link
+                            to={`/jobs/${j.id}`}
+                            className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200"
+                          >
+                            View
+                          </Link>
+                          <Link
+                            to={`/edit-job/${j.id}`}
+                            className="rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteJob(j.id, j.title)}
+                            className="rounded-lg bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-400"
+                            title="Delete vacancy"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

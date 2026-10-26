@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { selectCartCount } from '../../store/slices/cartSlice';
+import NotificationCenter from './NotificationCenter';
+import AuthModal from '../auth/AuthModal';
 import {
   Briefcase,
   ShoppingBag,
@@ -14,17 +16,19 @@ import {
   Moon,
   Menu,
   X,
-  Code2,
   Building2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  LogIn,
+  LogOut
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { user, role, switchRole, isRecruiter } = useAuth();
+  const { user, role, switchRole, isRecruiter, openLoginModal, logout, token } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const cartCount = useSelector(selectCartCount);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleRoleToggle = () => {
@@ -34,11 +38,10 @@ export const Navbar = () => {
 
   const navLinks = [
     { label: 'Explore Jobs', to: '/jobs', icon: Briefcase },
-    { label: 'Candidate Portfolio', to: '/portfolio', icon: UserCheck, badge: 'Mini-Project' },
+    { label: 'Candidate Portfolio', to: '/portfolio', icon: UserCheck },
     { label: 'Job Basket', to: '/cart', icon: ShoppingBag, count: cartCount },
     { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-    { label: 'Post Vacancy', to: '/post-job', icon: PlusCircle, recruiterOnly: true },
-    { label: 'Syllabus & State Lab', to: '/architecture-guide', icon: Code2, highlight: true }
+    { label: 'Post Vacancy', to: '/post-job', icon: PlusCircle, recruiterOnly: true }
   ];
 
   return (
@@ -139,6 +142,9 @@ export const Navbar = () => {
             <span>Post a Job</span>
           </button>
 
+          {/* Notification Center (Context API + useReducer showcase) */}
+          <NotificationCenter />
+
           {/* Dark / Light Toggle */}
           <button
             onClick={toggleTheme}
@@ -148,24 +154,77 @@ export const Navbar = () => {
             {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
-          {/* User profile capsule */}
-          <div
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 py-1 pl-1 pr-2.5 cursor-pointer hover:border-indigo-300 transition dark:border-slate-800 dark:bg-slate-900"
-          >
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="h-7 w-7 rounded-xl object-cover ring-2 ring-indigo-500/20"
-            />
-            <div className="hidden xl:block text-left">
-              <p className="text-xs font-bold leading-tight text-slate-900 dark:text-white">
-                {user.name}
-              </p>
-              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 capitalize">
-                {user.role}
-              </p>
-            </div>
+          {/* User profile capsule with Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+              className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 py-1 pl-1 pr-2.5 cursor-pointer hover:border-indigo-300 transition dark:border-slate-800 dark:bg-slate-900"
+              title="Account & Auth"
+            >
+              <img
+                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
+                alt={user.name}
+                className="h-7 w-7 rounded-xl object-cover ring-2 ring-indigo-500/20"
+              />
+              <div className="hidden xl:block text-left">
+                <p className="text-xs font-bold leading-tight text-slate-900 dark:text-white">
+                  {user.name}
+                </p>
+                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 capitalize">
+                  {user.role} {token ? '• JWT Active' : ''}
+                </p>
+              </div>
+            </button>
+
+            {userDropdownOpen && (
+              <div
+                className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-900 z-50 animate-fade-in"
+                onMouseLeave={() => setUserDropdownOpen(false)}
+              >
+                <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{user.name}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                  <span className="inline-block mt-1 rounded bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">
+                    Role: {user.role}
+                  </span>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      navigate('/dashboard');
+                    }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 text-left transition"
+                  >
+                    <LayoutDashboard size={14} />
+                    <span>My Dashboard</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      openLoginModal();
+                    }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40 text-left transition"
+                  >
+                    <LogIn size={14} />
+                    <span>Sign In / Switch Account</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      logout();
+                    }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 text-left transition"
+                  >
+                    <LogOut size={14} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu trigger */}
@@ -236,6 +295,8 @@ export const Navbar = () => {
           </div>
         </div>
       )}
+      {/* Auth Modal (Sign In / Register) */}
+      <AuthModal />
     </header>
   );
 };

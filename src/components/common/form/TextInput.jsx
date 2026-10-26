@@ -59,6 +59,9 @@ export const TextInput = ({
           onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
+          aria-invalid={hasError}
+          aria-describedby={hasError ? `${name}-error` : undefined}
+          aria-required={required}
           className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm font-normal text-slate-900 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-2 dark:bg-slate-900 dark:text-slate-100 ${
             Icon ? 'pl-9' : prefix ? 'pl-8' : ''
           } ${suffix || clearable ? 'pr-9' : ''} ${
@@ -74,6 +77,7 @@ export const TextInput = ({
             type="button"
             onClick={onClear || (() => onChange({ target: { name, value: '' } }))}
             className="absolute right-3 rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+            aria-label={`Clear ${label || name}`}
           >
             <X size={14} />
           </button>

@@ -21,14 +21,17 @@ import {
   CheckCircle2,
   Gift,
   Share2,
-  Users
+  Users,
+  ExternalLink,
+  Globe,
+  Trash2
 } from 'lucide-react';
 
 export const JobDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isJobSaved, toggleSaveJob } = useAuth();
+  const { isJobSaved, toggleSaveJob, isRecruiter } = useAuth();
   const { addToast } = useToast();
 
   const [job, setJob] = useState(null);
@@ -90,6 +93,28 @@ export const JobDetailPage = () => {
       title: 'Link Copied',
       message: 'Job posting URL copied to clipboard.'
     });
+  };
+
+  const handleDeleteJob = async () => {
+    if (!job) return;
+    if (!window.confirm(`Are you sure you want to delete the vacancy "${job.title}"? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await mockApi.deleteJob(job.id);
+      addToast({
+        type: 'success',
+        title: 'Vacancy Deleted',
+        message: `"${job.title}" has been deleted.`
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Delete Failed',
+        message: err.message || 'Could not delete job.'
+      });
+    }
   };
 
   if (loading) {
@@ -284,8 +309,20 @@ export const JobDetailPage = () => {
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-700 active:scale-95"
               >
                 <Send size={16} />
-                <span>Apply to Position</span>
+                <span>Apply with CareerConnect</span>
               </button>
+
+              {job.externalUrl && (
+                <a
+                  href={job.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-300 bg-sky-50 py-2.5 text-xs font-semibold text-sky-700 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 transition"
+                >
+                  <ExternalLink size={14} />
+                  <span>View Original Board Posting</span>
+                </a>
+              )}
 
               <button
                 onClick={handleCartToggle}
@@ -317,6 +354,31 @@ export const JobDetailPage = () => {
                 <Bookmark size={14} fill={isSaved ? 'currentColor' : 'none'} />
                 <span>{isSaved ? 'Saved to Bookmarks' : 'Bookmark this Job'}</span>
               </button>
+
+              {isRecruiter && (
+                <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/50 p-4 dark:border-indigo-900/40 dark:bg-indigo-950/20 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-indigo-900 dark:text-indigo-300">
+                    <span>Recruiter Action</span>
+                    <span className="rounded bg-indigo-200/60 px-1.5 py-0.5 text-[10px] text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-200">Admin</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      to={`/edit-job/${job.id}`}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition"
+                    >
+                      <Briefcase size={14} />
+                      <span>Edit Vacancy</span>
+                    </Link>
+                    <button
+                      onClick={handleDeleteJob}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-rose-700 transition"
+                    >
+                      <Trash2 size={14} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3 text-xs">

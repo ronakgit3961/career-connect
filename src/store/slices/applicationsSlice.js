@@ -12,7 +12,7 @@ export const fetchApplications = createAsyncThunk(
       const data = await mockApi.fetchApplications();
       dispatch(
         recordRequest({
-          endpoint: 'GET /api/v1/applications',
+          endpoint: 'GET /api/applications',
           status: 'SUCCESS',
           duration: Date.now() - startTime
         })
@@ -21,7 +21,7 @@ export const fetchApplications = createAsyncThunk(
     } catch (err) {
       dispatch(
         recordRequest({
-          endpoint: 'GET /api/v1/applications',
+          endpoint: 'GET /api/applications',
           status: 'ERROR',
           duration: Date.now() - startTime,
           error: err.message
@@ -41,7 +41,7 @@ export const submitApplication = createAsyncThunk(
       dispatch(incrementApplicantCount(applicationData.jobId));
       dispatch(
         recordRequest({
-          endpoint: 'POST /api/v1/applications',
+          endpoint: 'POST /api/applications',
           status: 'SUCCESS',
           duration: Date.now() - startTime
         })
@@ -50,7 +50,7 @@ export const submitApplication = createAsyncThunk(
     } catch (err) {
       dispatch(
         recordRequest({
-          endpoint: 'POST /api/v1/applications',
+          endpoint: 'POST /api/applications',
           status: 'ERROR',
           duration: Date.now() - startTime,
           error: err.message
@@ -72,7 +72,7 @@ export const batchApplyFromCart = createAsyncThunk(
       dispatch(clearCart());
       dispatch(
         recordRequest({
-          endpoint: 'POST /api/v1/applications/batch-apply',
+          endpoint: 'POST /api/applications/batch',
           status: 'SUCCESS',
           duration: Date.now() - startTime
         })
@@ -81,7 +81,7 @@ export const batchApplyFromCart = createAsyncThunk(
     } catch (err) {
       dispatch(
         recordRequest({
-          endpoint: 'POST /api/v1/applications/batch-apply',
+          endpoint: 'POST /api/applications/batch',
           status: 'ERROR',
           duration: Date.now() - startTime,
           error: err.message
@@ -150,13 +150,37 @@ const applicationsSlice = createSlice({
       .addCase(batchApplyFromCart.rejected, (state) => {
         state.submitting = false;
       })
-      // updateApplicationStatus
+      // updateApplicationStatus with Optimistic UI Update & Rollback support
+      .addCase(updateApplicationStatus.pending, (state, action) => {
+        // Optimistically apply new status immediately
+        if (action.meta && action.meta.arg) {
+          const { appId, newStatus } = action.meta.arg;
+          const app = state.items.find((a) => a.id === appId);
+          if (app) {
+            app._previousStatus = app.status;
+            app.status = newStatus;
+          }
+        }
+      })
       .addCase(updateApplicationStatus.fulfilled, (state, action) => {
         const { appId, newStatus } = action.payload;
         const app = state.items.find((a) => a.id === appId);
         if (app) {
           app.status = newStatus;
+          delete app._previousStatus;
         }
+      })
+      .addCase(updateApplicationStatus.rejected, (state, action) => {
+        // Rollback to previous status if network or transaction rejected
+        if (action.meta && action.meta.arg) {
+          const { appId } = action.meta.arg;
+          const app = state.items.find((a) => a.id === appId);
+          if (app && app._previousStatus) {
+            app.status = app._previousStatus;
+            delete app._previousStatus;
+          }
+        }
+        state.error = action.payload || 'Failed to update status';
       });
   }
 });

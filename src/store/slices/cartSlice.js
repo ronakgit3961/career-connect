@@ -2,8 +2,11 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const loadCartFromStorage = () => {
   try {
-    const raw = localStorage.getItem('cc_cart_items_v1');
-    return raw ? JSON.parse(raw) : [];
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = localStorage.getItem('cc_cart_items_v1');
+      return raw ? JSON.parse(raw) : [];
+    }
+    return [];
   } catch {
     return [];
   }
@@ -11,7 +14,9 @@ const loadCartFromStorage = () => {
 
 const saveCartToStorage = (items) => {
   try {
-    localStorage.setItem('cc_cart_items_v1', JSON.stringify(items));
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('cc_cart_items_v1', JSON.stringify(items));
+    }
   } catch (err) {
     console.warn('Failed to save cart to localStorage', err);
   }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
@@ -19,15 +19,21 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('cc_theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+  }, []);
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
-      {children}
-    </ThemeContext.Provider>
+  // Performance Optimization: useMemo guarantees reference stability for context consumers
+  const value = useMemo(
+    () => ({
+      theme,
+      toggleTheme,
+      isDark: theme === 'dark'
+    }),
+    [theme, toggleTheme]
   );
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = () => {

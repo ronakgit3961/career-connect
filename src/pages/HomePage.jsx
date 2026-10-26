@@ -12,7 +12,6 @@ import {
   Layers,
   ShoppingBag,
   LayoutDashboard,
-  Code2,
   TrendingUp,
   ShieldCheck
 } from 'lucide-react';
@@ -27,6 +26,9 @@ export const HomePage = () => {
   const [activeModalJob, setActiveModalJob] = useState(null);
 
   const featuredJobs = jobs.filter((j) => j.featured).slice(0, 4);
+  const totalVacancies = jobs.length || 92;
+  const hiringCompaniesCount = jobs.length ? new Set(jobs.map((j) => j.company)).size : 48;
+  const liveFeedsCount = jobs.filter((j) => j.source === 'external').length || 79;
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -46,9 +48,6 @@ export const HomePage = () => {
           <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-white/80 px-3.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm backdrop-blur-md dark:border-indigo-800/80 dark:bg-slate-900/80 dark:text-indigo-300 mb-6">
             <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" />
             <span>Next-Generation Career Hub & Talent Engine</span>
-            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold dark:bg-indigo-900/80">
-              Evaluation-I
-            </span>
           </div>
 
           {/* Heading */}
@@ -104,37 +103,37 @@ export const HomePage = () => {
           {/* Stats Bar */}
           <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-10 border-t border-slate-200/60 dark:border-slate-800/60">
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">1,400+</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{totalVacancies}+</p>
               <p className="text-xs text-slate-500 font-medium">Verified Vacancies</p>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">850+</p>
+              <p className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">{hiringCompaniesCount}+</p>
               <p className="text-xs text-slate-500 font-medium">Hiring Companies</p>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">94%</p>
-              <p className="text-xs text-slate-500 font-medium">Interview Placement</p>
+              <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">{liveFeedsCount}+</p>
+              <p className="text-xs text-slate-500 font-medium">Live API Feeds</p>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-violet-600 dark:text-violet-400">24h</p>
+              <p className="text-2xl sm:text-3xl font-black text-violet-600 dark:text-violet-400">&lt; 24h</p>
               <p className="text-xs text-slate-500 font-medium">Avg Recruiter Response</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Mini-Project Spotlight Hub */}
+      {/* Career Platform Solutions */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300 mb-3">
-            <Code2 size={13} />
-            <span>Interactive Evaluation Modules</span>
+            <Sparkles size={13} />
+            <span>Integrated Platform Solutions</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Integrated Mini-Projects & State Labs
+            Comprehensive Career Tools
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Explore dedicated modules designed specifically to evaluate SPA routing, Redux Toolkit, Context API, and advanced form handling.
+            Streamlined solutions designed for every stage of recruitment — from interactive portfolio showcases to batch applications and pipeline telemetry.
           </p>
         </div>
 
@@ -149,7 +148,7 @@ export const HomePage = () => {
                 <Users size={24} />
               </div>
               <span className="rounded-md bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                Mini-Project 1: Portfolio Routing
+                Candidate Showcase
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-2 group-hover:text-indigo-600 transition">
                 Candidate Portfolio Site
@@ -174,7 +173,7 @@ export const HomePage = () => {
                 <ShoppingBag size={24} />
               </div>
               <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                Mini-Project 2: Shopping Cart
+                Batch Applications
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-2 group-hover:text-emerald-600 transition">
                 Job Basket & Batch Checkout
@@ -199,7 +198,7 @@ export const HomePage = () => {
                 <LayoutDashboard size={24} />
               </div>
               <span className="rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                Mini-Project 3: Dashboard
+                Pipeline Telemetry
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-2 group-hover:text-violet-600 transition">
                 Seeker & Recruiter Dashboard
@@ -271,11 +270,11 @@ export const HomePage = () => {
                 <ArrowRight size={14} />
               </Link>
               <Link
-                to="/architecture-guide"
+                to="/jobs"
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-xs font-semibold text-white backdrop-blur-md hover:bg-white/20 transition"
               >
-                <Code2 size={14} />
-                <span>State & Syllabus Guide</span>
+                <Briefcase size={14} />
+                <span>Explore All Vacancies</span>
               </Link>
             </div>
           </div>

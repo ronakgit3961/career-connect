@@ -14,7 +14,9 @@ import {
   Send,
   Users,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  Sparkles
 } from 'lucide-react';
 
 export const JobCard = ({ job, onQuickApply, featured = false }) => {
@@ -130,6 +132,17 @@ export const JobCard = ({ job, onQuickApply, featured = false }) => {
             <DollarSign size={12} />
             {formatSalary(job.minSalary)} - {formatSalary(job.maxSalary)}
           </span>
+          {job.source === 'external' ? (
+            <span className="inline-flex items-center gap-1 rounded-lg bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/50 dark:border-sky-800/50">
+              <Globe size={11} />
+              Live API
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50">
+              <Sparkles size={11} />
+              Direct
+            </span>
+          )}
           {job.urgent && (
             <span className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
               <Flame size={12} />

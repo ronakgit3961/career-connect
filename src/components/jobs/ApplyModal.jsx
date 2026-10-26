@@ -99,8 +99,8 @@ export const ApplyModal = ({ isOpen, onClose, job }) => {
       } catch (err) {
         addToast({
           type: 'error',
-          title: 'Submission Failed',
-          message: err || 'Could not submit your application. Check simulated errors in syllabus lab.'
+          title: 'Application Not Dispatched',
+          message: err?.message || (typeof err === 'string' ? err : 'Could not submit your application.')
         });
       }
     }

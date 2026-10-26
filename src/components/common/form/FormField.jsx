@@ -13,14 +13,22 @@ export const FormField = ({
   children
 }) => {
   const hasError = Boolean(touched && error);
+  const errorId = `${name}-error`;
 
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
         <div className="flex items-center justify-between">
-          <label htmlFor={name} className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          <label
+            htmlFor={name}
+            className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+          >
             {label}
-            {required && <span className="text-rose-500 font-bold">*</span>}
+            {required && (
+              <span className="text-rose-500 font-bold" aria-hidden="true">
+                *
+              </span>
+            )}
             {tooltip && (
               <span className="group relative inline-flex cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                 <HelpCircle size={13} />
@@ -36,7 +44,12 @@ export const FormField = ({
       {children}
 
       {hasError ? (
-        <div className="flex items-center gap-1.5 text-xs font-medium text-rose-500 animate-fade-in">
+        <div
+          id={errorId}
+          role="alert"
+          aria-live="polite"
+          className="flex items-center gap-1.5 text-xs font-medium text-rose-500 animate-fade-in"
+        >
           <AlertCircle size={13} className="shrink-0" />
           <span>{error}</span>
         </div>

@@ -1,6 +1,64 @@
 import { useState, useCallback } from 'react';
 
 /**
+ * Pure validation rule engine
+ * Validates a single field against a declarative rule set.
+ * Separated from React lifecycle for standalone unit testing and predictable reusability.
+ */
+export const validateFieldRule = (rules, value, allValues = {}) => {
+  if (!rules) return '';
+
+  if (rules.required && (!value || (typeof value === 'string' && !value.trim()))) {
+    return rules.requiredMessage || 'This field is required';
+  }
+
+  if (rules.minLength && typeof value === 'string' && value.length < rules.minLength) {
+    return `Minimum ${rules.minLength} characters required`;
+  }
+
+  if (rules.maxLength && typeof value === 'string' && value.length > rules.maxLength) {
+    return `Maximum ${rules.maxLength} characters allowed`;
+  }
+
+  if (rules.email && typeof value === 'string') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value.trim())) {
+      return 'Please enter a valid email address';
+    }
+  }
+
+  if (rules.phone && typeof value === 'string' && value.trim()) {
+    const phoneRegex = /^(\+?\d{1,3}[-.\s]?)?(\(?\d{2,4}\)?[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}$/;
+    if (!phoneRegex.test(value.trim())) {
+      return 'Please enter a valid phone number (e.g. +1 555-123-4567)';
+    }
+  }
+
+  if (rules.url && typeof value === 'string' && value.trim()) {
+    try {
+      new URL(value);
+    } catch {
+      return 'Please enter a valid URL (e.g. https://example.com)';
+    }
+  }
+
+  if (rules.min !== undefined && Number(value) < rules.min) {
+    return `Must be at least ${rules.min}`;
+  }
+
+  if (rules.max !== undefined && Number(value) > rules.max) {
+    return `Must be at most ${rules.max}`;
+  }
+
+  if (rules.custom && typeof rules.custom === 'function') {
+    const customError = rules.custom(value, allValues);
+    if (customError) return customError;
+  }
+
+  return '';
+};
+
+/**
  * Custom form validation hook
  * Demonstrates:
  * - Local form state management
@@ -15,59 +73,12 @@ export const useForm = ({ initialValues = {}, validationRules = {}, onSubmit }) 
   const [dirty, setDirty] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateFieldValue = useCallback((name, value, allValues = values) => {
-    const rules = validationRules[name];
-    if (!rules) return '';
-
-    if (rules.required && (!value || (typeof value === 'string' && !value.trim()))) {
-      return rules.requiredMessage || 'This field is required';
-    }
-
-    if (rules.minLength && typeof value === 'string' && value.length < rules.minLength) {
-      return `Minimum ${rules.minLength} characters required`;
-    }
-
-    if (rules.maxLength && typeof value === 'string' && value.length > rules.maxLength) {
-      return `Maximum ${rules.maxLength} characters allowed`;
-    }
-
-    if (rules.email && typeof value === 'string') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value.trim())) {
-        return 'Please enter a valid email address';
-      }
-    }
-
-    if (rules.phone && typeof value === 'string' && value.trim()) {
-      const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
-      if (!phoneRegex.test(value.trim())) {
-        return 'Please enter a valid phone number (e.g. +1 555-123-4567)';
-      }
-    }
-
-    if (rules.url && typeof value === 'string' && value.trim()) {
-      try {
-        new URL(value);
-      } catch {
-        return 'Please enter a valid URL (e.g. https://example.com)';
-      }
-    }
-
-    if (rules.min !== undefined && Number(value) < rules.min) {
-      return `Must be at least ${rules.min}`;
-    }
-
-    if (rules.max !== undefined && Number(value) > rules.max) {
-      return `Must be at most ${rules.max}`;
-    }
-
-    if (rules.custom && typeof rules.custom === 'function') {
-      const customError = rules.custom(value, allValues);
-      if (customError) return customError;
-    }
-
-    return '';
-  }, [validationRules, values]);
+  const validateFieldValue = useCallback(
+    (name, value, allValues = values) => {
+      return validateFieldRule(validationRules[name], value, allValues);
+    },
+    [validationRules, values]
+  );
 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
